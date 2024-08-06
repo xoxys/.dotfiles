@@ -1,0 +1,12 @@
+.envrc
+.local/
+.vaultpasswd
+**/.terraform
+
+**/.vscode/*
+
+env/
+.env/
+.venv/
+*.swp
+pytestdebug.log

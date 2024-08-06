@@ -1,0 +1,50 @@
+add_newline = false
+# Which is equivalent to
+format = """
+$username\
+$hostname\
+$shlvl\
+$directory\
+$kubernetes\
+$git_branch\
+$git_commit\
+$git_state\
+$git_metrics\
+$git_status\
+$docker_context\
+$package\
+$golang\
+$helm\
+$nodejs\
+$perl\
+$php\
+$python\
+$ruby\
+$rust\
+$terraform\
+$env_var\
+$custom\
+$sudo\
+$cmd_duration\
+$line_break\
+$jobs\
+$status\
+$character"""
+
+[directory]
+truncate_to_repo = true
+
+[username]
+show_always = true
+style_user = "blue"
+format = "[$user]($style)"
+
+[hostname]
+ssh_only = false
+format =  "[@$hostname](white) "
+
+[kubernetes]
+symbol = "⎈ "
+format = " [$symbol$context( \\($namespace\\))]($style) "
+style = "bright-blue"
+disabled = false
