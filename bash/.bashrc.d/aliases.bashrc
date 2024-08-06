@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1090
 
 ## os
 alias ls='ls -Gh --color=auto'
@@ -14,4 +15,5 @@ alias km='k -n monitoring'
 alias pkc='echo $KUBECONFIG'
 alias ukc='unset KUBECONFIG'
 alias catkc='cat ${KUBECONFIG:-~/.kube/config}'
+source <(kubectl completion bash)
 complete -F __start_kubectl k

@@ -34,14 +34,11 @@ export GPG_TTY
 eval "$(direnv hook bash)"
 eval "$(starship init bash)"
 
-source <(kubectl completion bash)
-source <(gardenctl completion bash)
 source <(crane completion bash)
-source <(openstack complete)
 
 # User specific aliases and functions
 while IFS= read -r -d '' file; do
-    source "$file"
-done <   <(find -L "$HOME/.bashrc.d" -type f -name \*.bashrc -print0)
+  source "$file"
+done < <(find -L "$HOME/.bashrc.d" -type f -name \*.bashrc -print0)
 
 alias_completion

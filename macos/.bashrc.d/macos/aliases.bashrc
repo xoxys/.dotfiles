@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1090
 
 ## gardenctl
 alias gn=gardenctl
@@ -7,6 +8,7 @@ alias gntc='gardenctl target control-plane'
 alias gntc-='gardenctl target unset control-plane'
 alias gnk='eval "$(gardenctl kubectl-env bash)"'
 alias gnp='eval "$(gardenctl provider-env bash)"'
+source <(gardenctl completion bash)
 complete -o default -F __start_gardenctl gn
 
 ## openstack
@@ -17,4 +19,5 @@ alias ov="o volume --os-volume-api-version 3.50"
 alias ovs="ov show"
 alias ova="ov attachment"
 alias oval="ova list"
+source <(openstack complete)
 complete -o default -F _openstack o
