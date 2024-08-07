@@ -19,5 +19,7 @@ alias ov="o volume --os-volume-api-version 3.50"
 alias ovs="ov show"
 alias ova="ov attachment"
 alias oval="ova list"
-source <(openstack complete)
+# opensteck completion is stored statically, as the execution in each terminal window
+# has caused a noticeable slowdown.
+# source <(openstack complete)
 complete -o default -F _openstack o
