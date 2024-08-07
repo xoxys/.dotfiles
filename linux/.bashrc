@@ -3,7 +3,8 @@
 
 # Source global definitions
 if [ -f /etc/bashrc ]; then
-  . /etc/bashrc
+  # shellcheck disable=SC1091
+  source /etc/bashrc
 fi
 
 # User specific environment
@@ -26,10 +27,10 @@ export GPG_TTY
 eval "$(direnv hook bash)"
 eval "$(starship init bash)"
 
-complete -C $HOME/.local/bin/mc mc
-complete -C $HOME/.local/bin/vault vault
+complete -C "$HOME/.local/bin/mc" mc
+complete -C "$HOME/.local/bin/vault" vault
 complete -C /usr/bin/vault vault
-complete -C $HOME/.local/bin/tofu tofu
+complete -C "$HOME/.local/bin/tofu" tofu
 
 while IFS= read -r -d '' file; do
   source "$file"

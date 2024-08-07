@@ -14,6 +14,6 @@ alias kf='k -n flux-system'
 alias km='k -n monitoring'
 alias pkc='echo $KUBECONFIG'
 alias ukc='unset KUBECONFIG'
-alias catkc='cat ${KUBECONFIG:-~/.kube/config}'
+alias catkc='cat ${KUBECONFIG:-$HOME/.kube/config}'
 source <(kubectl completion bash)
 complete -F __start_kubectl k

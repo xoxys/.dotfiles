@@ -15,7 +15,7 @@ touch "$SAVED_KC_FILE"
 # KUBECONFIG
 function kc {
   local save_kc=no
-  while true ; do
+  while true; do
     case $1 in
     "")
       find "$KC_DIR" -type f -name "config.yaml"
@@ -25,8 +25,8 @@ function kc {
     --)
       # use last kubeconfig (redo source last one)
       last_kc="$(cat "$LAST_KC_FILE")"
-      if [ -z "$last_kc" ] ; then
-        >&2 echo "Error: no last kubeconfig path found in file '$LAST_KC_FILE'"
+      if [ -z "$last_kc" ]; then
+        echo >&2 "Error: no last kubeconfig path found in file '$LAST_KC_FILE'"
         return 1
       fi
 
@@ -38,8 +38,8 @@ function kc {
     -)
       # use saved kubeconfig
       saved_kc="$(cat "$SAVED_KC_FILE")"
-      if [ -z "$saved_kc" ] ; then
-        >&2 echo "Error: no saved kubeconfig path found in file '$SAVED_KC_FILE'"
+      if [ -z "$saved_kc" ]; then
+        echo >&2 "Error: no saved kubeconfig path found in file '$SAVED_KC_FILE'"
         return 1
       fi
 
@@ -62,33 +62,33 @@ function kc {
       # [[ "$name" == *.yaml ]] || name="$name.yaml"
 
       config="$(find "$KC_DIR/$name" -type f -name "config.yaml" 2>/dev/null)"
-      if [ -z "$config" ] ; then
+      if [ -z "$config" ]; then
         echo "Error: No kubeconfig exists for env '$name'"
         return 1
       fi
 
-      [ "$save_kc" = yes ] && echo -n "$name" > "$SAVED_KC_FILE"
-      echo -n "$config" > "$LAST_KC_FILE"
+      [ "$save_kc" = yes ] && echo -n "$name" >"$SAVED_KC_FILE"
+      echo -n "$config" >"$LAST_KC_FILE"
       export KUBECONFIG="$config"
       echo "Cluster '$name' activated. KUBECONFIG at $KUBECONFIG"
-      break;
+      break
       ;;
     esac
   done
 }
 
 function _kc_completion {
-    local cur base_dir
-    COMPREPLY=()
-    cur="${COMP_WORDS[COMP_CWORD]}"
-    base_dir="$HOME/.kube/configs"
+  local cur base_dir
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  base_dir="$HOME/.kube/configs"
 
-    # Find all directories containing config.yaml
-    local dirs
-    dirs=$(find "$base_dir" -type f -name config.yaml -print0 | xargs -0 dirname | xargs basename -a | sort -u)
+  # Find all directories containing config.yaml
+  local dirs
+  dirs=$(find "$base_dir" -type f -name config.yaml -print0 | xargs -0 -r dirname | xargs -r basename -a | sort -u)
 
-    # Generate completions
-    mapfile -t COMPREPLY < <(compgen -W "$dirs" -- "$cur")
+  # Generate completions
+  mapfile -t COMPREPLY < <(compgen -W "$dirs" -- "$cur")
 }
 
 # completion for kc
@@ -100,7 +100,7 @@ function ckc {
   local result
 
   [ -z "$1" ] || kc "$1"
-  
+
   # shellcheck disable=SC2002
   if [ -s "$KUBECONFIG" ]; then
     result="$(cat "$KUBECONFIG" | _skc)"
@@ -125,7 +125,7 @@ function skc {
   local result
   result="$(_skc "$1")"
 
-  if [ -n "$result" ] ; then
+  if [ -n "$result" ]; then
     eval "$result"
     echo "KUBECONFIG at $KUBECONFIG"
   fi
@@ -134,14 +134,14 @@ function skc {
 function _skc {
   local save_kc=no
   local KC_PATH=
-  if [ -n "$1" ] ; then
+  if [ -n "$1" ]; then
     save_kc=yes
     case "$1" in
-      *.yaml | *.yml)
-        KC_PATH="$KC_DIR/${1%.*}.yaml"
+    *.yaml | *.yml)
+      KC_PATH="$KC_DIR/${1%.*}.yaml"
       ;;
-      *)
-        KC_PATH="$KC_DIR/$1.yaml"
+    *)
+      KC_PATH="$KC_DIR/$1.yaml"
       ;;
     esac
   else
@@ -151,23 +151,23 @@ function _skc {
 
   local dir
   dir="$(dirname "$KC_PATH")"
-  if ! [ -d "$dir" ] ; then
+  if ! [ -d "$dir" ]; then
     mkdir -p "$dir"
   fi
 
   if [ -p /dev/stdin ]; then
-    cat > "$KC_PATH"
+    cat >"$KC_PATH"
   else
-    pbpaste > "$KC_PATH"
+    pbpaste >"$KC_PATH"
   fi
 
   # test copied content
-  if ! KUBECONFIG=$KC_PATH kubectl config get-clusters > /dev/null ; then
+  if ! KUBECONFIG=$KC_PATH kubectl config get-clusters >/dev/null; then
     rm "$KC_PATH"
     return 1
   fi
 
-  if [ $save_kc != yes ] ; then
+  if [ $save_kc != yes ]; then
     echo "export KUBECONFIG=\"$KC_PATH\""
   fi
 }
