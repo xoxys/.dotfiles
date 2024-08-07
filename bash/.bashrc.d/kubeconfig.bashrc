@@ -8,13 +8,10 @@ TMP_KUBECONFIGS_DIR=$HOME/.kube/configs/.tmp/$$
 mkdir -p "$TMP_KUBECONFIGS_DIR"
 
 LAST_KC_FILE=$KC_DIR/last_kubeconfig
-SAVED_KC_FILE=$KC_DIR/saved_kubeconfig
 touch "$LAST_KC_FILE"
-touch "$SAVED_KC_FILE"
 
 # KUBECONFIG
 function kc {
-  local save_kc=no
   while true; do
     case $1 in
     "")
@@ -30,27 +27,14 @@ function kc {
         return 1
       fi
 
-      export KUBECONFIG="$KC_DIR/$last_kc"
-      echo "Cluster '$last_kc' activated. KUBECONFIG at $KUBECONFIG"
-      break
-      ;;
-
-    -)
-      # use saved kubeconfig
-      saved_kc="$(cat "$SAVED_KC_FILE")"
-      if [ -z "$saved_kc" ]; then
-        echo >&2 "Error: no saved kubeconfig path found in file '$SAVED_KC_FILE'"
+      if ! config="$(_kc_find "$last_kc")"; then
+        echo "$config"
         return 1
       fi
 
-      export KUBECONFIG="$KC_DIR/$saved_kc"
-      echo "Cluster '$saved_kc' activated. KUBECONFIG at $KUBECONFIG"
+      export KUBECONFIG="$config"
+      printf "Cluster '%s' activated\nKUBECONFIG at %s\n" "$last_kc" "$KUBECONFIG"
       break
-      ;;
-
-    -s)
-      save_kc=yes
-      shift
       ;;
 
     -*)
@@ -61,20 +45,29 @@ function kc {
       name="$1"
       # [[ "$name" == *.yaml ]] || name="$name.yaml"
 
-      config="$(find "$KC_DIR/$name" -type f -name "config.yaml" 2>/dev/null)"
-      if [ -z "$config" ]; then
-        echo "Error: No kubeconfig exists for env '$name'"
+      if ! config="$(_kc_find "$1")"; then
+        echo "$config"
         return 1
       fi
 
-      [ "$save_kc" = yes ] && echo -n "$name" >"$SAVED_KC_FILE"
-      echo -n "$config" >"$LAST_KC_FILE"
+      echo -n "$name" >"$LAST_KC_FILE"
       export KUBECONFIG="$config"
-      echo "Cluster '$name' activated. KUBECONFIG at $KUBECONFIG"
+
+      printf "Cluster '%s' activated\nKUBECONFIG at %s\n" "$name" "$KUBECONFIG"
       break
       ;;
     esac
   done
+}
+
+function _kc_find {
+  config="$(find "$KC_DIR/$1" -type f -name "config.yaml" 2>/dev/null)"
+  if [ -z "$config" ]; then
+    echo "Error: No kubeconfig exists for env '$1'"
+    return 1
+  fi
+
+  echo "$config"
 }
 
 function _kc_completion {
