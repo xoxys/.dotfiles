@@ -71,14 +71,13 @@ function _kc_find {
 }
 
 function _kc_completion {
-  local cur base_dir
+  local cur
   COMPREPLY=()
   cur="${COMP_WORDS[COMP_CWORD]}"
-  base_dir="$HOME/.kube/configs"
 
   # Find all directories containing config.yaml
   local dirs
-  dirs=$(find "$base_dir" -type f -name config.yaml -print0 | xargs -0 -r dirname | xargs -r basename -a | sort -u)
+  dirs=$(find "$HOME/.kube/configs" -type f -name config.yaml -print0 | xargs -0 -r dirname | xargs -r basename -a | sort -u)
 
   # Generate completions
   mapfile -t COMPREPLY < <(compgen -W "$dirs" -- "$cur")
@@ -126,15 +125,15 @@ function skc {
 
 function _skc {
   local save_kc=no
-  local KC_PATH=
+  local KC_PATH
   if [ -n "$1" ]; then
     save_kc=yes
     case "$1" in
     *.yaml | *.yml)
-      KC_PATH="$KC_DIR/${1%.*}.yaml"
+      KC_PATH="${1%.*}.yaml"
       ;;
     *)
-      KC_PATH="$KC_DIR/$1.yaml"
+      KC_PATH="$1.yaml"
       ;;
     esac
   else
