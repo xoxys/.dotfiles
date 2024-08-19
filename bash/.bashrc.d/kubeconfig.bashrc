@@ -150,7 +150,14 @@ function _skc {
   if [ -p /dev/stdin ]; then
     cat >"$KC_PATH"
   else
-    pbpaste >"$KC_PATH"
+    if [ "$(uname -s)" = "Darwin" ]; then
+      pbpaste >"$KC_PATH"
+    elif [ "$(uname -s)" = "Linux" ]; then
+      wl-paste >"$KC_PATH"
+    else
+      echo "Unsupported operating system"
+      return 1
+    fi
   fi
 
   # test copied content
