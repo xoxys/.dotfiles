@@ -7,8 +7,8 @@ if [ -f /etc/bashrc ]; then
   source /etc/bashrc
 fi
 
-# User specific environment
 export HISTCONTROL=ignoreboth
+export TENV_AUTO_INSTALL=true
 
 if ! [[ "$PATH" =~ $HOME/.local/bin:$HOME/bin: ]]; then
   PATH="$HOME/.local/bin:$HOME/bin:$PATH"
@@ -30,7 +30,7 @@ eval "$(starship init bash)"
 complete -C "$HOME/.local/bin/mc" mc
 complete -C "$HOME/.local/bin/vault" vault
 complete -C /usr/bin/vault vault
-complete -C "$HOME/.local/bin/tofu" tofu
+complete -C /usr/bin/tofu tofu
 
 while IFS= read -r -d '' file; do
   source "$file"
