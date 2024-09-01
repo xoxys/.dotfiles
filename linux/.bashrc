@@ -17,6 +17,9 @@ fi
 export GOPATH=$HOME/Devel/golang
 PATH=$PATH:$GOPATH/bin:$GOROOT/bin:$HOME/.tfenv/bin
 
+export N_PREFIX=$HOME/local/n
+PATH=$N_PREFIX/bin:$PATH
+
 PATH="$PATH:${KREW_ROOT:-$HOME/.krew}/bin"
 
 export PATH
