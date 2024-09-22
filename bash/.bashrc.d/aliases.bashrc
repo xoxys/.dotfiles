@@ -5,6 +5,7 @@
 alias ls='ls -Gh --color=auto'
 alias ll='ls -l'
 alias la='ls -la'
+alias watch='watch '
 
 ## kubectl
 alias k='kubectl'
