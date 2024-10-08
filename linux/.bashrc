@@ -14,6 +14,11 @@ if ! [[ "$PATH" =~ $HOME/.local/bin:$HOME/bin: ]]; then
   PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 fi
 
+if [[ -d "$HOME/.android/sdk" ]]; then
+  export ANDROID_HOME=$HOME/.android/sdk
+  PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools/bin:$ANDROID_HOME/emulator"
+fi
+
 export GOPATH=$HOME/Devel/golang
 PATH=$PATH:$GOPATH/bin:$GOROOT/bin:$HOME/.tfenv/bin
 
