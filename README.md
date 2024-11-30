@@ -8,7 +8,7 @@
 
 - Clone this repository
 - Run install.sh
-- Open up new window to initiate zsh shell
+- Open up new window to initiate shell
 
 ## License
 
