@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+
+import os
+import requests
+import sys
+from git import Repo
+
+
+def main():
+    host = os.getenv("GITEA_HOST")
+    token = os.getenv("GITEA_TOKEN")
+    org = os.getenv("GITEA_ORG")
+
+    if not all([host, token, org]):
+        print("Please set GITEA_HOST, GITEA_TOKEN and GITEA_ORG environment variables")
+        sys.exit(1)
+
+    # Page through repository search endpoint until we stop getting data
+    page = 0
+    repositories = []
+    r = requests.get(
+        f"{host}/api/v1/orgs/{org}/repos?limit=50&page={page}&token={token}"
+    )
+
+    while len(r.json()):
+        repositories.extend(r.json())
+        page = page + 1
+        r = requests.get(
+            f"{host}/api/v1/orgs/{org}/repos?limit=50&page={page}&token={token}"
+        )
+
+    # Loop through each repository returned, cloning it over SSH
+    for repository in repositories:
+        if os.path.exists(repository["name"]):
+            print(f"Skipping {repository['full_name']} - directory already exists")
+            continue
+        print(repository["full_name"])
+        Repo.clone_from(repository["ssh_url"], repository["name"])
+
+
+if __name__ == "__main__":
+    main()
