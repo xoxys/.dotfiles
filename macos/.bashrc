@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1090
 
+bind -s 'set completion-ignore-case on'
+
 #User specific environment
 export GOBIN=$HOME/go/bin
 

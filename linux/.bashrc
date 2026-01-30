@@ -7,6 +7,8 @@ if [ -f /etc/bashrc ]; then
   source /etc/bashrc
 fi
 
+bind -s 'set completion-ignore-case on'
+
 export HISTCONTROL=ignoreboth
 export TENV_AUTO_INSTALL=true
 
