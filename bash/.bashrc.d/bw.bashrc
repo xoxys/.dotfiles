@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1090
+
+for _bw_path in \
+    "${BASH_SOURCE[0]%/*}/bw-common.bashrc" \
+    "$HOME/.bashrc.d/bw-common.bashrc" \
+    "$HOME/.dotfiles/bash/.bashrc.d/bw-common.bashrc"; do
+    [[ -f "$_bw_path" ]] && source "$_bw_path" && break
+done
+unset _bw_path
 
 bw-unlock() {
+    _bw_check_deps || return 1
     local session
-
-    if [[ "$(uname)" == "Darwin" ]]; then
-        session=$(security find-generic-password -s "bw_session" -a "$USER" -w 2>/dev/null)
-    else
-        session=$(secret-tool lookup service bw_session account "$USER" 2>/dev/null)
-    fi
+    session=$(_bw_get_session)
 
     if [ -n "$session" ] && BW_SESSION="$session" bw unlock --check &>/dev/null; then
         echo "✅ Bitwarden is already unlocked."
@@ -21,11 +26,7 @@ bw-unlock() {
             return 1
         fi
 
-        if [[ "$(uname)" == "Darwin" ]]; then
-            security add-generic-password -s "bw_session" -a "$USER" -w "$session" -U
-        else
-            echo -n "$session" | secret-tool store --label="Bitwarden Session" service bw_session account "$USER"
-        fi
+        _bw_store_session "$session"
         echo "✅ Bitwarden unlocked. Session stored in keyring."
         export BW_SESSION="$session"
     fi

@@ -1,51 +1,60 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1090
+
+for _bw_path in \
+    "$HOME/.bashrc.d/bw-common.bashrc" \
+    "$HOME/.dotfiles/bash/.bashrc.d/bw-common.bashrc"; do
+    [[ -f "$_bw_path" ]] && source "$_bw_path" && break
+done
+unset _bw_path
 
 bw_load_vault() {
+    _bw_check_deps || return 1
     local session
+    session=$(_bw_get_session)
 
-    # Retrieve session from OS Keyring
-    if [[ "$(uname)" == "Darwin" ]]; then
-        session=$(security find-generic-password -s "bw_session" -a "$USER" -w 2>/dev/null)
-    else
-        session=$(secret-tool lookup service bw_session account "$USER" 2>/dev/null)
+    if [ -z "$session" ]; then
+        log_error "Bitwarden session not found. Run 'bw-unlock'."
+        return 1
     fi
 
-    if [ -z "$session" ] || ! BW_SESSION="$session" bw unlock --check &>/dev/null; then
-        log_error "Bitwarden locked. Run 'bw-unlock' in your terminal."
+    if ! BW_SESSION="$session" bw unlock --check &>/dev/null; then
+        log_error "Bitwarden session expired or invalid. Run 'bw-unlock'."
         return 1
     fi
 
     export BW_SESSION="$session"
 
-    # Fetch items into a NON-EXPORTED shell variable.
-    # Because direnv runs in a subshell, this data is completely destroyed
-    # the millisecond direnv finishes executing. It never hits the disk.
-    # Note: If your vault is massive, add `--folderid <id>` to speed this up.
     _BW_IN_MEMORY_VAULT=$(bw list items 2>/dev/null)
+
+    if [ -z "$_BW_IN_MEMORY_VAULT" ] || [ "$_BW_IN_MEMORY_VAULT" = "null" ]; then
+        log_error "Failed to retrieve items from Bitwarden."
+        return 1
+    fi
 }
 
-# Function 2: Instantly extract specific items/fields from the memory block
 bw_get() {
     local item_name="$1"
     local field="${2:-password}"
 
-    if [ -z "$_BW_IN_MEMORY_VAULT" ]; then
-        log_error "Vault not loaded in memory. Call 'bw_load_vault' first."
+    if [ -z "$_BW_IN_MEMORY_VAULT" ] || [ "$_BW_IN_MEMORY_VAULT" = "null" ]; then
         return 1
     fi
 
-    if [ "$field" = "password" ]; then
-        echo "$_BW_IN_MEMORY_VAULT" | jq -r --arg name "$item_name" '.[] | select(.name == $name) | .login.password // empty'
-    elif [ "$field" = "username" ]; then
-        echo "$_BW_IN_MEMORY_VAULT" | jq -r --arg name "$item_name" '.[] | select(.name == $name) | .login.username // empty'
-    elif [ "$field" = "website" ] || [ "$field" = "url" ]; then
-        # Bitwarden stores URLs in an array. This grabs the first one.
-        echo "$_BW_IN_MEMORY_VAULT" | jq -r --arg name "$item_name" '.[] | select(.name == $name) | .login.uris[0].uri // empty'
-    elif [ "$field" = "notes" ]; then
-        # Grabs the Secure Note text
-        echo "$_BW_IN_MEMORY_VAULT" | jq -r --arg name "$item_name" '.[] | select(.name == $name) | .notes // empty'
+    local field_lower
+    field_lower=$(echo "$field" | tr '[:upper:]' '[:lower:]')
+
+    if [ "$field_lower" = "password" ]; then
+        echo "$_BW_IN_MEMORY_VAULT" | jq -r --arg name "$item_name" 'first(.[] | select((.name // "" | ascii_downcase) == ($name | ascii_downcase)) | .login.password) // empty'
+    elif [ "$field_lower" = "username" ]; then
+        echo "$_BW_IN_MEMORY_VAULT" | jq -r --arg name "$item_name" 'first(.[] | select((.name // "" | ascii_downcase) == ($name | ascii_downcase)) | .login.username) // empty'
+    elif [ "$field_lower" = "website" ] || [ "$field_lower" = "url" ]; then
+        echo "$_BW_IN_MEMORY_VAULT" | jq -r --arg name "$item_name" 'first(.[] | select((.name // "" | ascii_downcase) == ($name | ascii_downcase)) | .login.uris[0].uri) // empty'
+    elif [ "$field_lower" = "notes" ]; then
+        echo "$_BW_IN_MEMORY_VAULT" | jq -r --arg name "$item_name" 'first(.[] | select((.name // "" | ascii_downcase) == ($name | ascii_downcase)) | .notes) // empty'
     else
-        # Extract custom fields
-        echo "$_BW_IN_MEMORY_VAULT" | jq -r --arg name "$item_name" --arg fld "$field" '.[] | select(.name == $name) | .fields[] | select(.name == $fld) | .value // empty'
+        echo "$_BW_IN_MEMORY_VAULT" | jq -r --arg name "$item_name" --arg fld "$field" '
+            first(.[] | select((.name // "" | ascii_downcase) == ($name | ascii_downcase)) | .fields[]? | select((.name // "" | ascii_downcase) == ($fld | ascii_downcase)) | .value) // empty
+        '
     fi
 }
