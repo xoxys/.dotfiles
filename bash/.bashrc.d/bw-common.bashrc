@@ -11,7 +11,7 @@ _bw_get_session() {
 _bw_store_session() {
     local session="$1"
     if [[ "$(uname)" == "Darwin" ]]; then
-        security add-generic-password -s "bw_session" -a "$USER" -w "$session" -U
+        security add-generic-password -s "bw_session" -a "$USER" -U -w
     else
         echo -n "$session" | secret-tool store --label="Bitwarden Session" service bw_session account "$USER"
     fi

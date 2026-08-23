@@ -1,12 +1,21 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1090
 
+_bw_found=0
 for _bw_path in \
     "$HOME/.bashrc.d/bw-common.bashrc" \
     "$HOME/.dotfiles/bash/.bashrc.d/bw-common.bashrc"; do
-    [[ -f "$_bw_path" ]] && source "$_bw_path" && break
+    if [[ -f "$_bw_path" ]]; then
+        source "$_bw_path"
+        _bw_found=1
+        break
+    fi
 done
 unset _bw_path
+if [[ "$_bw_found" -eq 0 ]]; then
+    echo "bw-common.bashrc not found" >&2
+fi
+unset _bw_found
 
 bw_load_vault() {
     _bw_check_deps || return 1

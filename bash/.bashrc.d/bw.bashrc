@@ -1,13 +1,22 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1090
 
+_bw_found=0
 for _bw_path in \
     "${BASH_SOURCE[0]%/*}/bw-common.bashrc" \
     "$HOME/.bashrc.d/bw-common.bashrc" \
     "$HOME/.dotfiles/bash/.bashrc.d/bw-common.bashrc"; do
-    [[ -f "$_bw_path" ]] && source "$_bw_path" && break
+    if [[ -f "$_bw_path" ]]; then
+        source "$_bw_path"
+        _bw_found=1
+        break
+    fi
 done
 unset _bw_path
+if [[ "$_bw_found" -eq 0 ]]; then
+    echo "bw-common.bashrc not found" >&2
+fi
+unset _bw_found
 
 bw-unlock() {
     _bw_check_deps || return 1
@@ -26,8 +35,11 @@ bw-unlock() {
             return 1
         fi
 
-        _bw_store_session "$session"
-        echo "✅ Bitwarden unlocked. Session stored in keyring."
+        if _bw_store_session "$session"; then
+            echo "✅ Bitwarden unlocked. Session stored in keyring."
+        else
+            echo "⚠️ Bitwarden unlocked, but could not store session in keyring." >&2
+        fi
         export BW_SESSION="$session"
     fi
 
